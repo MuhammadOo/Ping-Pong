@@ -1,0 +1,157 @@
+import pygame, sys,random
+
+pygame.init()
+
+clock=pygame.time.Clock()
+
+width=1280
+height=960
+window=pygame.display.set_mode((width,height))
+pygame.display.set_caption("Ping pong by Muhammad")
+
+ball=pygame.Rect(width/2-15,height/2-15,30,30)
+player=pygame.Rect(width-20,height/2-70,10,140)
+opponent=pygame.Rect(10,height/2-70,10,140)
+
+bg_color=pygame.Color("grey12") #this is specific color name
+light_grey=(200,200,200)
+
+ball_speed_x=7
+ball_speed_y=7
+player_speed=0
+opponent_speed=9
+
+def ball_animation():
+    global ball_speed_x,ball_speed_y,player_score,opponent_score,score_time
+
+    ball.x += ball_speed_x
+    ball.y += ball_speed_y
+    if ball.top <= 0 or ball.bottom >= height:
+        ball_speed_y *= -1
+        #restart()
+    if ball.left <= 0:
+        player_score+=1
+        #restart()
+        score_time=pygame.time.get_ticks()
+
+    if ball.right >= width:
+        opponent_score+=1
+        #restart()
+        score_time = pygame.time.get_ticks()
+
+    if ball.colliderect(player) and ball_speed_x>0:
+        if abs(ball.right-player.left)<10:
+            ball_speed_x *= -1
+        elif (ball.top-player.bottom)<10  and ball_speed_y>0:
+            ball_speed_y*=-1
+        elif (ball.bottom-player.top)<10  and ball_speed_y>0:
+            ball_speed_y*=-1
+    if ball.colliderect(opponent) and ball_speed_x<0:
+        if abs(ball.left - opponent.right) < 10:
+            ball_speed_x *= -1
+        elif (ball.top-opponent.bottom)<10  and ball_speed_y>0:
+            ball_speed_y*=-1
+        elif (ball.bottom-opponent.top)<10  and ball_speed_y>0:
+            ball_speed_y*=-1
+
+def player_animation():
+    player.y+=player_speed
+    if player.top<=0:
+        player.top=0
+    if player.bottom>=height:
+        player.bottom=height
+def opponent_animation():
+    if opponent.top<ball.y:
+        opponent.top+=opponent_speed
+    if opponent.bottom>ball.y:
+        opponent.bottom-=opponent_speed
+    if opponent.top<=0:
+        opponent.top=0
+    if opponent.bottom>=height:
+        opponent.bottom=height
+
+def restart():
+    global ball_speed_x,ball_speed_y,score_time
+    ball.center = (width / 2, height / 2)
+    current_time=pygame.time.get_ticks()
+
+    if current_time-score_time<1000:
+        number_three=myfont.render("3",
+                                   True, #anti-aliasing#
+                                   (light_grey))
+        score3_rect = number_three.get_rect(center=(640,510))
+        window.blit(number_three, score3_rect)
+
+    if 1000<current_time-score_time<2000:
+        number_two=myfont.render("2",
+                                   True, #anti-aliasing#
+                                   (light_grey))
+        score2_rect = number_two.get_rect(center=(640,510))
+        window.blit(number_two, score2_rect)
+
+    if 2000<current_time-score_time<3000:
+        number_one=myfont.render("1",
+                                   True, #anti-aliasing#
+                                   (light_grey))
+        score1_rect = number_one.get_rect(center=(640,510))
+        window.blit(number_one, score1_rect)
+
+    if current_time-score_time<3000:
+        ball_speed_y=0
+        ball_speed_x=0
+    else:
+        ball_speed_y = 9*random.choice((1, -1))
+        ball_speed_x = 9*random.choice((1, -1))
+        score_time=None
+
+player_score=0
+opponent_score=0
+myfont = pygame.font.SysFont('Comic Sans MS', 32)
+
+def score_display():
+    score1_surface = myfont.render(f"{int(player_score)}",
+                                     True,  # anti-aliasing#
+                                     (light_grey))
+    score1_rect = score1_surface.get_rect(center=(660,470))
+    window.blit(score1_surface, score1_rect)
+
+    score2_surface = myfont.render(f"{int(opponent_score)}",
+                                  True,  # anti-aliasing#
+                                  (light_grey))
+    score2_rect = score2_surface.get_rect(center=(615, 470))
+    window.blit(score2_surface, score2_rect)
+
+#Score timer
+score_time=True
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+
+        if event.type==pygame.KEYDOWN:
+            if event.key==pygame.K_DOWN:
+                player_speed+=7
+            if event.key==pygame.K_UP:
+                player_speed-=7
+        if event.type==pygame.KEYUP:
+            if event.key==pygame.K_DOWN:
+                player_speed-=7
+            if event.key==pygame.K_UP:
+                player_speed+=7
+
+
+    ball_animation()
+    player_animation()
+    opponent_animation()
+
+    window.fill(bg_color)
+    pygame.draw.rect(window,light_grey,player)
+    pygame.draw.rect(window,light_grey,opponent)
+    pygame.draw.ellipse(window,light_grey,ball)
+    pygame.draw.aaline(window,light_grey,(width/2,0),(width/2,height))
+    if score_time:
+        restart()
+    score_display()
+    pygame.display.update()
+    clock.tick(60)
